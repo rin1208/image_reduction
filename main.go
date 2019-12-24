@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/jpeg"
 	"image/png"
@@ -46,7 +45,6 @@ func save_image(filename string) {
 			log.Fatal(err)
 		}
 		defer out.Close()
-		fmt.Println("png")
 		png.Encode(out, m)
 	} else if data == "jpeg" {
 		out, err := os.Create(path + uuid + ".jpeg")
@@ -55,7 +53,6 @@ func save_image(filename string) {
 		}
 		defer out.Close()
 		jpeg.Encode(out, m, nil)
-		fmt.Println("jpeg")
 	}
 
 }
