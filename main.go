@@ -10,8 +10,8 @@ import (
 	"os"
 	"sync"
 
+	"github.com/disintegration/imaging"
 	"github.com/google/uuid"
-	"github.com/nfnt/resize"
 )
 
 func main() {
@@ -48,7 +48,8 @@ func save_image(filename string) {
 		log.Fatal(err)
 	}
 	file.Close()
-	m := resize.Resize(1280, 0, img, resize.Lanczos3)
+
+	m := imaging.Resize(img, 1280, 0, imaging.Lanczos)
 
 	if data == "png" {
 		out, err := os.Create(path + uuid + ".png")
