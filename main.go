@@ -1,24 +1,35 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/jpeg"
 	"image/png"
 	"io/ioutil"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/nfnt/resize"
 )
 
 func main() {
+	ch := make(chan int, 4)
+	wg := sync.WaitGroup{}
 
 	files, _ := ioutil.ReadDir("./image")
+	fmt.Println(len(files))
 	for _, f := range files {
-		save_image("./image/" + f.Name())
+		ch <- 1
+		wg.Add(1)
+		go func(name string) {
+			defer wg.Done()
+			save_image("./image/" + name)
+			<-ch
+		}(f.Name())
 	}
-
+	wg.Wait()
 }
 
 func save_image(filename string) {
@@ -37,7 +48,7 @@ func save_image(filename string) {
 		log.Fatal(err)
 	}
 	file.Close()
-	m := resize.Resize(1000, 0, img, resize.Lanczos3)
+	m := resize.Resize(1280, 0, img, resize.Lanczos3)
 
 	if data == "png" {
 		out, err := os.Create(path + uuid + ".png")
