@@ -1,17 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"image"
-	"image/jpeg"
-	"image/png"
 	"io/ioutil"
 	"log"
-	"os"
 	"sync"
 
 	"github.com/disintegration/imaging"
-	"github.com/google/uuid"
 )
 
 func main() {
@@ -19,58 +13,32 @@ func main() {
 	wg := sync.WaitGroup{}
 
 	files, _ := ioutil.ReadDir("./image")
-	fmt.Println(len(files))
 	for _, f := range files {
 		ch <- 1
 		wg.Add(1)
 		go func(name string) {
 			defer wg.Done()
-			save_image("./image/" + name)
+			save_image("./image/"+name, name)
 			<-ch
 		}(f.Name())
 	}
 	wg.Wait()
 }
 
-func save_image(filename string) {
+func save_image(filename string, name string) {
 
 	path := "./datas/"
 
-	uuid := create_uuid()
-
-	file, err := os.Open(filename)
+	file, err := imaging.Open(filename)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to open image: %v", err)
 	}
-	img, data, err := image.Decode(file)
+
+	m := imaging.Resize(file, 1280, 0, imaging.Lanczos)
+
+	err = imaging.Save(m, path+name)
 	if err != nil {
-		log.Println("hoge")
-		log.Fatal(err)
-	}
-	file.Close()
-
-	m := imaging.Resize(img, 1280, 0, imaging.Lanczos)
-
-	if data == "png" {
-		out, err := os.Create(path + uuid + ".png")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer out.Close()
-		png.Encode(out, m)
-	} else if data == "jpeg" {
-		out, err := os.Create(path + uuid + ".jpeg")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer out.Close()
-		jpeg.Encode(out, m, nil)
+		log.Fatalf("failed to save image: %v", err)
 	}
 
-}
-
-func create_uuid() string {
-	u, _ := uuid.NewRandom()
-	uu := u.String()
-	return uu
 }
